@@ -45,7 +45,54 @@ class MoviesController < ApplicationController
     redirect_to movies_path
   end
 
+  def search_tmdb
+    @search_terms = search_terms
+    # just show the empty search form until the user actually submits a search
+    return unless params.key?(:title)
+
+    if @search_terms[:title].blank?
+      flash.now[:danger] = 'Please fill in all required fields!'
+      return
+    end
+
+    @movies = Movie.find_in_tmdb(@search_terms)
+    flash.now[:danger] = 'No movies found with given parameters!' if @movies.blank?
+  end
+
+  def add_movie
+    attributes = add_movie_params
+    if attributes[:title].blank?
+      flash[:danger] = 'Please fill in all required fields!'
+    else
+      attributes[:rating] = Movie::DEFAULT_RATING unless Movie.all_ratings.include?(attributes[:rating])
+      movie = Movie.create!(attributes)
+      flash[:success] = "#{movie.title} was successfully added to RottenPotatoes."
+    end
+    redirect_to search_tmdb_path
+  end
+
   private
+
+  def movie_params
+    params.require(:movie).permit(:title, :rating, :description, :release_date)
+  end
+
+  def add_movie_params
+    movie = params[:movie]
+    movie = ActionController::Parameters.new({}) unless movie.is_a?(ActionController::Parameters)
+    attributes = movie.permit(:title, :rating, :description, :release_date).to_h.symbolize_keys
+    attributes[:title] = attributes[:title].to_s.strip
+    attributes[:release_date] = attributes[:release_date].presence
+    attributes
+  end
+
+  def search_terms
+    {
+      title: params[:title].to_s.strip,
+      release_year: params[:release_year].to_s.strip,
+      language: params[:language].presence || 'all'
+    }
+  end
 
   def force_index_redirect
     return unless !params.key?(:ratings) || !params.key?(:sort_by)

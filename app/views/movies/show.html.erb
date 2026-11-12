@@ -8,7 +8,7 @@
   </li>
   <li>
     Released on:
-    <%= @movie.release_date.strftime("%B %d, %Y") %>
+    <%= @movie.release_date&.strftime("%B %d, %Y") %>
   </li>
 </ul>
 
