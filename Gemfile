@@ -4,6 +4,8 @@ gem 'rails', '~> 7.1.5'
 gem 'sprockets-rails'
 gem 'faraday'
 gem 'jquery-rails'
+# web server (Heroku runs `rails server`, which needs one in production)
+gem 'puma'
 
 # for Heroku deployment - as described in Ap. A of ELLS book
 group :development, :test do
